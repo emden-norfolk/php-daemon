@@ -8,7 +8,7 @@ Daemonises PHP scripts with graceful shutdown and multiple workers.
 
 Your script must be daemonisable. The following rules must be adheared to:
 
- - Your scrupt must implement a function main().
+ - Your script must implement a function main().
  - Your script must check `running()` for a true/false condition for each
    item of work. If false, the script should exit. If you do not check for this
    condition, the script will be unable to exit cleanly and signal interrupts

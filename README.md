@@ -1,10 +1,46 @@
-# php-daemon
-PHP Daemoniser
+# PHP Daemoniser
 
-Usage:
+Daemonises PHP scripts with graceful shutdown and multiple workers.
 
-/var/www/html/daemon/phpdaemon \
-	/var/www/html/daemon/example.php \
-	/var/www/html/daemon/example.0.pid \
-	/var/www/html/daemon/example.log 0
+## Usage
 
+### How to write your scripts.
+
+Your script must be daemonisable. The following rules must be adheared to:
+
+ - Your scrupt must implement a function main().
+ - Your script must check `running()` for a true/false condition for each
+   item of work. If false, the script should exit. If you do not check for this
+   condition, the script will be unable to exit cleanly and signal interrupts
+   will be ignored.
+ - Standard output is closed. Any use of `print`, `echo`, `var_dump`, etc will
+   result in the script terminating abruptly.
+ - Errors will be logged to a log file. Use `trigger_error()` to manually write
+   to the log.
+
+See `example.php` for an implementation reference.
+
+### Standalone
+
+How to call a daemonisable PHP script.
+
+```
+./phpdaemon <php file> <process id file> <log file> <worker number>
+./phpdaemon example.php example.0.pid example.log 0
+```
+
+### Monit
+
+To configure Monit with two workers:
+
+```
+check process example0 with pidfile /opt/daemon/example.0.pid
+    start program = "/opt/daemon/phpdaemon /opt/daemon/example.php /opt/daemon/example.0.pid /opt/daemon/example.log 0"
+        as uid apache and gid apache
+    stop program = "/opt/daemon/phpdaemonstop /opt/daemon/example.0.pid"
+
+check process example1 with pidfile /opt/daemon/example.1.pid
+    start program = "/opt/daemon/phpdaemon /opt/daemon/example.php /opt/daemon/example.1.pid /opt/daemon/example.log 1"
+        as uid apache and gid apache
+    stop program = "/opt/daemon/phpdaemonstop /opt/daemon/example.0.pid"
+```

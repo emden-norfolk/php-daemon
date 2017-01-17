@@ -6,9 +6,9 @@ Daemonises PHP scripts with graceful shutdown and multiple workers.
 
 ### How to write your scripts.
 
-Your script must be daemonisable. The following rules must be adheared to:
+The following rules must be adheared to when writing a PHP script to be called by phpdaemon:
 
- - Your script must implement a function main().
+ - Your script must implement a function `main()`.
  - Your script must check `running()` for a true/false condition for each
    item of work. If false, the script should exit. If you do not check for this
    condition, the script will be unable to exit cleanly and signal interrupts
@@ -22,16 +22,20 @@ See `example.php` for an implementation reference.
 
 ### Standalone
 
-How to call a daemonisable PHP script.
-
 ```
 ./phpdaemon <php file> <process id file> <log file> <worker number>
+```
+
+Example:
+
+```
 ./phpdaemon example.php example.0.pid example.log 0
 ```
 
 ### Monit
 
-To configure Monit with two workers:
+Example of how to configure Monit with two workers. Assumes user is
+`apache` and directory is `/opt`.
 
 ```
 check process example0 with pidfile /opt/daemon/example.0.pid
@@ -42,5 +46,5 @@ check process example0 with pidfile /opt/daemon/example.0.pid
 check process example1 with pidfile /opt/daemon/example.1.pid
     start program = "/opt/daemon/phpdaemon /opt/daemon/example.php /opt/daemon/example.1.pid /opt/daemon/example.log 1"
         as uid apache and gid apache
-    stop program = "/opt/daemon/phpdaemonstop /opt/daemon/example.0.pid"
+    stop program = "/opt/daemon/phpdaemonstop /opt/daemon/example.1.pid"
 ```

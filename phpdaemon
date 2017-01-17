@@ -1,0 +1,105 @@
+#!/usr/bin/php
+<?php
+
+$mainfile = $argv[1];
+$pidfile = $argv[2];
+$logfile = $argv[3];
+$wrkn = (int)$argv[4];
+
+require_once($mainfile);
+
+$lock = fopen($pidfile, 'c+');
+if (!flock($lock, LOCK_EX | LOCK_NB)) {
+	fwrite(STDERR, "Already running.\n");
+	exit(1);
+}
+ 
+switch ($pid = pcntl_fork()) {
+	case -1:
+		fwrite(STDERR, "Could not fork.\n");
+		exit(1);
+	case 0: // this is the child process
+		break;
+	default: // otherwise this is the parent process
+	// Parent process
+		fseek($lock, 0);
+		ftruncate($lock, 0);
+		fwrite($lock, $pid);
+		fflush($lock);
+		exit(0);
+}
+ 
+if (posix_setsid() === -1) {
+	fwrite(STDERR, "Could not set SID.\n");
+	exit(1);
+}
+ 
+// Attach file descriptors to /dev/null
+fclose(STDIN);
+fclose(STDOUT);
+fclose(STDERR);
+fopen('/dev/null', 'r'); // set fd/0
+fopen('/dev/null', 'w'); // set fd/1
+fopen('php://stdout', 'w'); // a hack to duplicate fd/1 to 2
+ 
+// Set up log file.
+ini_set('html_errors', false);
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+	if ($errno === E_STRICT)
+		return;
+	if ($errno === E_DEPRECATED)
+		return;
+
+	global $mainfile, $logfile, $wrkn;
+	$errtype = array(
+		E_ERROR => 'error',
+		E_WARNING => 'warning',
+		E_PARSE => 'parsing error',
+		E_NOTICE => 'notice',
+		E_CORE_ERROR => 'core error',
+		E_CORE_WARNING => 'core warning',
+		E_COMPILE_ERROR => 'compile error',
+		E_COMPILE_WARNING => 'compile warning',
+		E_USER_ERROR => 'user error',
+		E_USER_WARNING => 'user warning',
+		E_USER_NOTICE => 'user notice',
+	);
+
+	$program = basename($mainfile, '.php');
+	$log = fopen($logfile, 'a');
+	$pid = posix_getpid();
+	fwrite($log, "$program ($wrkn-$pid) [{$errtype[$errno]}]: $errstr in $errfile on line $errline\n");
+	fclose($log);
+});
+
+register_shutdown_function(function() {
+	global $mainfile, $logfile, $wrkn;
+	$error = error_get_last();
+	if ($error && $error['type'] === E_ERROR) {
+		$program = basename($mainfile, '.php');
+		$log = fopen($logfile, 'a');
+		$pid = posix_getpid();
+		fwrite($log, "$program ($wrkn-$pid) [error]: {$error['message']} in {$error['file']} on line {$error['line']}\n");
+		fclose($log);
+	}
+});
+
+// Ignore signals, except SIGTERM, which we want to handle.
+pcntl_signal(SIGTSTP, SIG_IGN);
+pcntl_signal(SIGTTOU, SIG_IGN);
+pcntl_signal(SIGTTIN, SIG_IGN);
+pcntl_signal(SIGHUP, SIG_IGN);
+$running = true;
+pcntl_signal(SIGTERM, function($signo) {
+	global $running;
+	$running = false;
+});
+function running() {
+	global $running;
+	pcntl_signal_dispatch();
+	return $running;
+}
+ 
+// Call main() function in script.
+$args = array_splice($argv, 5);
+main($args, count($args), $wrkn);

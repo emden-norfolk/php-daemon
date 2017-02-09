@@ -48,3 +48,7 @@ check process example1 with pidfile /opt/daemon/example.1.pid
         as uid apache and gid apache
     stop program = "/opt/daemon/phpdaemonstop /opt/daemon/example.1.pid"
 ```
+## Resources
+
+ * Advanced Programming in the UNIX Environment (Third Edition), Chapter 13: Daemon Processes, W. R. Stevens, et. al 2013.
+ * [Daemonising a PHP cli script on a posix system](https://andytson.com/blog/2010/05/daemonising-a-php-cli-script-on-a-posix-system/), Andy Thompson 2010.

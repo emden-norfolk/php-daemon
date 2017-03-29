@@ -40,7 +40,7 @@ fclose(STDOUT);
 fclose(STDERR);
 fopen('/dev/null', 'r'); // set fd/0
 fopen('/dev/null', 'w'); // set fd/1
-fopen('php://stdout', 'w'); // a hack to duplicate fd/1 to 2
+@fopen('php://stdout', 'w'); // a hack to duplicate fd/1 to 2
  
 // Set up log file.
 ini_set('html_errors', false);

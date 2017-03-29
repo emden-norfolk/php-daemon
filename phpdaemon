@@ -6,8 +6,6 @@ $pidfile = $argv[2];
 $logfile = $argv[3];
 $wrkn = (int)$argv[4];
 
-require_once($mainfile);
-
 $lock = fopen($pidfile, 'c+');
 if (!flock($lock, LOCK_EX | LOCK_NB)) {
 	fwrite(STDERR, "Already running.\n");
@@ -102,4 +100,5 @@ function running() {
  
 // Call main() function in script.
 $args = array_splice($argv, 5);
+require_once($mainfile);
 main($args, count($args), $wrkn);

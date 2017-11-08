@@ -19,7 +19,7 @@ switch ($pid = pcntl_fork()) {
 	case 0: // this is the child process
 		break;
 	default: // otherwise this is the parent process
-	// Parent process
+		// Parent process
 		fseek($lock, 0);
 		ftruncate($lock, 0);
 		fwrite($lock, $pid);

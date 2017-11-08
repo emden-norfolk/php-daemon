@@ -9,6 +9,6 @@ function main(array $argv, $argc, $wrkn) {
 		// echo "Bad goy!"; <-- Do NOT do this!
 
 		// Do work here.
-		sleep(300);
+		sleep(1);
 	}
 }

@@ -1,0 +1,34 @@
+#!/usr/bin/php
+<?php
+
+$mainfile = $argv[1];
+$pidfile = $argv[2];
+$logfile = $argv[3];
+$wrkn = (int)$argv[4];
+
+$lock = fopen($pidfile, 'c+');
+if (!flock($lock, LOCK_EX | LOCK_NB)) {
+	fwrite(STDERR, "Already running.\n");
+	exit(1);
+}
+ 
+// Ignore signals, except SIGTERM, which we want to handle.
+pcntl_signal(SIGTSTP, SIG_IGN);
+pcntl_signal(SIGTTOU, SIG_IGN);
+pcntl_signal(SIGTTIN, SIG_IGN);
+pcntl_signal(SIGHUP, SIG_IGN);
+$running = true;
+pcntl_signal(SIGTERM, function($signo) {
+	global $running;
+	$running = false;
+});
+function running() {
+	global $running;
+	pcntl_signal_dispatch();
+	return $running;
+}
+ 
+// Call main() function in script.
+$args = array_splice($argv, 5);
+require_once($mainfile);
+main($args, count($args), $wrkn);

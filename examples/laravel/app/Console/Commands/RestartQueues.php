@@ -51,7 +51,7 @@ class RestartQueues extends Command
             $start = base_path('vendor/emden-norfolk/php-daemon/phpdaemon');
             $daemon = base_path("daemon/$queue.php");
             $pidfile = storage_path("monit/$file");
-            $logfile = storage_path("logs/$queue.log");
+            $logfile = storage_path("logs/monit-$queue.log");
 
 
             $commands[] = "sudo -u apache $stop $pidfile";

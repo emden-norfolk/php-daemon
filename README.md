@@ -18,7 +18,7 @@ The following rules must be adheared to when writing a PHP script to be called b
  - Errors will be logged to a log file. Use `trigger_error()` to manually write
    to the log.
 
-See `example.php` for an implementation reference.
+See `examples/basic.php` for an implementation reference.
 
 ### Standalone
 
@@ -29,7 +29,7 @@ See `example.php` for an implementation reference.
 Example:
 
 ```
-./phpdaemon example.php example.0.pid example.log 0
+./phpdaemon examples/basic.php example.0.pid example.log 0
 ```
 
 ### Monit
@@ -39,15 +39,20 @@ Example of how to configure Monit with two workers. Assumes user is
 
 ```
 check process example0 with pidfile /opt/daemon/example.0.pid
-    start program = "/opt/daemon/phpdaemon /opt/daemon/example.php /opt/daemon/example.0.pid /opt/daemon/example.log 0"
+    start program = "/opt/daemon/phpdaemon /opt/daemon/examples/basic.php /opt/daemon/example.0.pid /opt/daemon/example.log 0"
         as uid apache and gid apache
     stop program = "/opt/daemon/phpdaemonstop /opt/daemon/example.0.pid"
 
 check process example1 with pidfile /opt/daemon/example.1.pid
-    start program = "/opt/daemon/phpdaemon /opt/daemon/example.php /opt/daemon/example.1.pid /opt/daemon/example.log 1"
+    start program = "/opt/daemon/phpdaemon /opt/daemon/examples/basic.php /opt/daemon/example.1.pid /opt/daemon/example.log 1"
         as uid apache and gid apache
     stop program = "/opt/daemon/phpdaemonstop /opt/daemon/example.1.pid"
 ```
+
+### Monit and Laravel
+
+See `examples/laravel/`
+
 ## Resources
 
  * Advanced Programming in the UNIX Environment (Third Edition), Chapter 13: Daemon Processes, W. R. Stevens, et. al 2013.
